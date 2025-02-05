@@ -2,8 +2,8 @@ package postgres
 
 import (
 	"fmt"
-	"net/url"
 	"url-shortener/internal/config"
+	"url-shortener/internal/lib/postgres"
 
 	"github.com/jmoiron/sqlx"
 
@@ -18,19 +18,8 @@ type Storage struct {
 func New(cfg config.Postgres) (*Storage, error) {
 	const op = "storage.postgres.New"
 
-	// construct string for connection
-	q := url.Values{}
-	q.Set("sslmode", cfg.SSLMode)
-	dataSrc := url.URL{
-		Scheme:   "postgres",
-		User:     url.UserPassword(cfg.User, cfg.Password),
-		Host:     fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
-		Path:     cfg.DBName,
-		RawQuery: q.Encode(),
-	}
-
 	// establish a connection
-	conn, err := sqlx.Open("postgres", dataSrc.String())
+	conn, err := sqlx.Open("postgres", postgres.FormConnStr(cfg))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
