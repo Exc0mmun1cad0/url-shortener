@@ -8,16 +8,27 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
+
 type Config struct {
 	Env        string     `yaml:"env" env-required:"true"`
 	HTTPServer HTTPServer `yaml:"http_server"`
+	Postgres   Postgres   `yaml:"postgres"`
 }
 
 type HTTPServer struct {
 	Host        string        `yaml:"host" env-default:"localhost"`
-	Port        string        `yaml:"port" env-default:"port"`
+	Port        int           `yaml:"port" env-default:"port"`
 	Timeout     time.Duration `yaml:"timeout" env-default:"10s"`
 	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"30s"`
+}
+
+// Postgres represents connection to PostgreSQL databse
+type Postgres struct {
+	Host     string `yaml:"host" env-default:"localhost"`
+	Port     int    `yaml:"port" env-default:"5432"`
+	User     string `yaml:"user" env-required:"true"`
+	Password string `yaml:"password" env-required:"true"`
+	DBName   string `yaml:"db_name,omitempty"`
 }
 
 // MustLoad loads confiugration from .yaml file.
