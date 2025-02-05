@@ -1,8 +1,13 @@
 package postgres
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"url-shortener/internal/models"
+	"url-shortener/internal/storage"
+
+	"github.com/lib/pq"
 )
 
 // GetURL returns the url according to its alias.
@@ -10,18 +15,23 @@ func (s *Storage) GetURL(alias string) (string, error) {
 	const op = "storage.postgres.GetURL"
 
 	var rawURL string
-	err := s.db.Select(
+	err := s.db.Get(
 		&rawURL,
 		`SELECT raw_url FROM links WHERE alias = $1`,
-		rawURL,
+		alias,
 	)
+
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", storage.ErrURLNotFound
+		}
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	return rawURL, nil
 }
 
+// GetLink provides information about shortened url by its alias.
 func (s *Storage) GetLink(alias string) (models.Link, error) {
 	const op = "storage.postgres.GetLink"
 
@@ -32,12 +42,16 @@ func (s *Storage) GetLink(alias string) (models.Link, error) {
 		alias,
 	)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.Link{}, storage.ErrLinkNotFound
+		}
 		return models.Link{}, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return link, nil
 }
 
+// CreateLink adds new url shortening for further use by GetURL.
 func (s *Storage) CreateLink(link models.Link) (uint, error) {
 	const op = "storage.postgres.CreateLink"
 
@@ -48,24 +62,29 @@ func (s *Storage) CreateLink(link models.Link) (uint, error) {
 		link.Alias, link.RawURL,
 	)
 	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			return 0, fmt.Errorf("%s: %w", op, storage.ErrLinkExists)
+		}
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return linkID, nil
 }
 
-func (s *Storage) DeleteLink(alias string) (uint, error) {
+// DeleteLink deletes infromation about url shortening so it can be used anymore.
+func (s *Storage) DeleteLink(alias string) error {
 	const op = "storage.postgres.DeleteLink"
 
-	var linkID uint
-	err := s.db.Get(
-		&linkID,
-		`DELETE FROM links WHERE alias = $1 RETURNING link_id`,
+	_, err := s.db.Exec(
+		`DELETE FROM links WHERE alias = $1`,
 		alias,
 	)
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("%s: %w", op, storage.ErrLinkNotFound)
+		}
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	return linkID, nil
+	return nil
 }
