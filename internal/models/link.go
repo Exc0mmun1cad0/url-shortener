@@ -1,10 +1,11 @@
-package link
+package models
 
 import "time"
 
 // Link is a model for url representation in storage
 type Link struct {
-	Alias     string
-	RawURL    string
-	CreatedAt time.Time
+	ID        uint       `db:"link_id"`
+	Alias     string    `db:"alias"`
+	RawURL    string    `db:"raw_url"`
+	CreatedAt time.Time `db:"created_at"`
 }
