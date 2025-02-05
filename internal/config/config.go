@@ -8,7 +8,6 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
-
 type Config struct {
 	Env        string     `yaml:"env" env-required:"true"`
 	HTTPServer HTTPServer `yaml:"http_server"`
@@ -28,7 +27,8 @@ type Postgres struct {
 	Port     int    `yaml:"port" env-default:"5432"`
 	User     string `yaml:"user" env-required:"true"`
 	Password string `yaml:"password" env-required:"true"`
-	DBName   string `yaml:"db_name,omitempty"`
+	DBName   string `yaml:"db_name" env-default:"postgres"`
+	SSLMode  string `yaml:"ssl_mode" env-default:"require"`
 }
 
 // MustLoad loads confiugration from .yaml file.
