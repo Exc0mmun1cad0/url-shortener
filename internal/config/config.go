@@ -23,12 +23,12 @@ type HTTPServer struct {
 
 // Postgres represents connection to PostgreSQL databse
 type Postgres struct {
-	Host     string `yaml:"host" env-default:"localhost"`
-	Port     int    `yaml:"port" env-default:"5432"`
-	User     string `yaml:"user" env-required:"true"`
-	Password string `yaml:"password" env-required:"true"`
-	DBName   string `yaml:"db_name" env-default:"postgres"`
-	SSLMode  string `yaml:"ssl_mode" env-default:"require"`
+	Host     string `yaml:"host" env-default:"localhost" env:"POSTGRES_HOSR"`
+	Port     int    `yaml:"port" env-default:"5432" env:"POSTGRES_PORT"`
+	User     string `yaml:"user" env-required:"true" env:"POSTGRES_USER"`
+	Password string `yaml:"password" env-required:"true" env:"POSTGRES_PASSWORD"`
+	DBName   string `yaml:"db_name" env-default:"postgres" env:"POSTGRES_DB"`
+	SSLMode  string `yaml:"ssl_mode" env-default:"require" env:"POSTGRES_SSLMODE"`
 }
 
 // MustLoad loads confiugration from .yaml file.
