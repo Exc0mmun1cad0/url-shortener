@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS links (
+    link_id SERIAL PRIMARY KEY,
+    raw_url TEXT NOT NULL,
+    alias VARCHAR(24) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
