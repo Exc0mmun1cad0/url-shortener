@@ -44,7 +44,7 @@ func formatTime(groups []string, a slog.Attr) slog.Attr {
 		}
 
 		newTime := fmt.Sprintf(
-			"[%d-%d-%d]:[%d:%d:%d.%d]",
+			"{%d:%d:%d}:[%d:%d:%d.%d]",
 			oldTime.Day(), oldTime.Month(), oldTime.Year(),
 			oldTime.Hour(), oldTime.Minute(), oldTime.Second(), oldTime.Nanosecond()/1e7,
 		)
