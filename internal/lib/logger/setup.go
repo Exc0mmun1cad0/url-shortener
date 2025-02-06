@@ -6,11 +6,12 @@ import (
 	"log/slog"
 	"os"
 	"time"
+	"url-shortener/internal/lib/logger/badaslog"
 )
 
 const (
-	envLocal = "local"
-	envProd  = "prod"
+	envDev  = "dev"
+	envProd = "prod"
 
 	layout = "2006-01-02 15:04:05.000"
 )
@@ -19,10 +20,11 @@ func SetupLogger(env string) *slog.Logger {
 	var log *slog.Logger
 
 	switch env {
-	case envLocal:
-		log = slog.New(
-			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug, AddSource: true, ReplaceAttr: formatTime}),
-		)
+	case envDev:
+		// log = slog.New(
+		// 	slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug, AddSource: true, ReplaceAttr: formatTime}),
+		// )
+		log = slog.New(badaslog.NewHandler(nil))
 
 	case envProd:
 		log = slog.New(
@@ -35,7 +37,7 @@ func SetupLogger(env string) *slog.Logger {
 
 // formatTime changes time representation in "time" record attribute
 func formatTime(groups []string, a slog.Attr) slog.Attr {
-	if a.Key == "time" {
+	if a.Key == slog.TimeKey {
 		oldTimeVal := a.Value.String()[:len(layout)]
 
 		oldTime, err := time.Parse(layout, oldTimeVal)
