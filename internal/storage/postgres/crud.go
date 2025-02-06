@@ -52,7 +52,7 @@ func (s *Storage) GetLink(alias string) (models.Link, error) {
 }
 
 // SaveLink adds new url shortening for further use by GetURL.
-func (s *Storage) SaveLink(link models.Link) (uint, error) {
+func (s *Storage) SaveLink(link models.Link) (*models.Link, error) {
 	const op = "storage.postgres.CreateLink"
 
 	var linkID uint
@@ -63,12 +63,13 @@ func (s *Storage) SaveLink(link models.Link) (uint, error) {
 	)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-			return 0, fmt.Errorf("%s: %w", op, storage.ErrLinkExists)
+			return nil, fmt.Errorf("%s: %w", op, storage.ErrLinkExists)
 		}
-		return 0, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return linkID, nil
+	link.ID = linkID
+	return &link, nil
 }
 
 // DeleteLink deletes infromation about url shortening so it can be used anymore.
