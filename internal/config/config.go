@@ -23,7 +23,7 @@ type HTTPServer struct {
 
 // Postgres represents connection to PostgreSQL databse
 type Postgres struct {
-	Host     string `yaml:"host" env-default:"localhost" env:"POSTGRES_HOSR"`
+	Host     string `yaml:"host" env-default:"localhost" env:"POSTGRES_HOST"`
 	Port     int    `yaml:"port" env-default:"5432" env:"POSTGRES_PORT"`
 	User     string `yaml:"user" env-required:"true" env:"POSTGRES_USER"`
 	Password string `yaml:"password" env-required:"true" env:"POSTGRES_PASSWORD"`
