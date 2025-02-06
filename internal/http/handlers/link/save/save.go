@@ -34,6 +34,7 @@ type LinkSaver interface {
 	SaveLink(link models.Link) (*models.Link, error)
 }
 
+// New creates handler for creating new links.
 func New(log *slog.Logger, linkSaver LinkSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.link.save.New"
@@ -82,6 +83,13 @@ func New(log *slog.Logger, linkSaver LinkSaver) http.HandlerFunc {
 			log.Info("url already exists", slog.String("url", req.URL))
 
 			render.JSON(w, r, resp.Error("url already exists"))
+
+			return
+		}
+		if err != nil {
+			log.Error("failed to add url", sl.Err(err))
+
+			render.JSON(w, r, resp.Error("failed to add url"))
 
 			return
 		}
