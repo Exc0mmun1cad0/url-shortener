@@ -3,10 +3,11 @@ package httpapp
 import (
 	"log/slog"
 	"net/http"
+	del "url-shortener/internal/http/handlers/link/delete"
 	"url-shortener/internal/http/handlers/link/get"
 	"url-shortener/internal/http/handlers/link/save"
+	"url-shortener/internal/http/handlers/redirect"
 	mw "url-shortener/internal/http/middlewares"
-	del "url-shortener/internal/http/handlers/link/delete"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -16,6 +17,8 @@ type LinkStorage interface {
 	save.LinkSaver
 	get.LinkGetter
 	del.LinkDeleter
+
+	redirect.URLGetter
 }
 
 // NewRouter creates router for our app. It will be used in
