@@ -1,24 +1,34 @@
 package app
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
 	"strconv"
 	httpapp "url-shortener/internal/app/http"
 	"url-shortener/internal/config"
+	"url-shortener/internal/http/handlers/link/save"
+	"url-shortener/internal/storage/postgres"
 )
 
 type App struct {
 	HTTPServer *http.Server
-	cfg        *config.Config
+	Storage    *postgres.Storage
+}
+
+type LinkStorage interface {
+	save.LinkSaver
 }
 
 func NewApp(
-	log *slog.Logger,
 	cfg *config.Config,
+	log *slog.Logger,
+	storage *postgres.Storage,
 ) *App {
-	handler := httpapp.NewRouter(log, cfg) //TODO: maybe i should pass db connection here?
+	handler := httpapp.NewRouter(log, storage)
 
 	address := net.JoinHostPort(cfg.HTTPServer.Host, strconv.Itoa(cfg.HTTPServer.Port))
 	srv := &http.Server{
@@ -32,10 +42,24 @@ func NewApp(
 
 	return &App{
 		HTTPServer: srv,
-		cfg: cfg,
+		Storage:    storage,
 	}
 }
 
-func (a *App) Run() {
+func (a *App) MustRun() {
+	if err := a.HTTPServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		panic(err)
+	}
+}
 
+func (a *App) Stop(ctx context.Context) error {
+	if err := a.HTTPServer.Shutdown(ctx); err != nil {
+		return fmt.Errorf("failed to shutdown http server: %s", err.Error())
+	}
+
+	if err := a.Storage.Close(); err != nil {
+		return fmt.Errorf("failed to close db connection: %s", err.Error())
+	}
+
+	return nil
 }
