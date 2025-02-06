@@ -63,6 +63,8 @@ func New(log *slog.Logger, linkSaver LinkSaver) http.HandlerFunc {
 			log.Error("invalid request", sl.Err(err))
 
 			render.JSON(w, r, resp.ValidationError(validateErr))
+
+			return
 		}
 
 		alias := req.Alias
