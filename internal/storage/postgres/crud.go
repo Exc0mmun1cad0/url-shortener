@@ -75,15 +75,17 @@ func (s *Storage) SaveLink(link models.Link) (*models.Link, error) {
 func (s *Storage) DeleteLink(alias string) error {
 	const op = "storage.postgres.DeleteLink"
 
-	_, err := s.db.Exec(
+	res, err := s.db.Exec(
 		`DELETE FROM links WHERE alias = $1`,
 		alias,
 	)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("%s: %w", op, storage.ErrLinkNotFound)
-		}
 		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	// Check whether deletion was successful
+	if num, _ := res.RowsAffected(); num == 0 {
+		return fmt.Errorf("%s: %w", op, storage.ErrLinkNotFound)
 	}
 
 	return nil
