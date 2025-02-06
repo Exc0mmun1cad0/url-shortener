@@ -30,11 +30,11 @@ type Response struct {
 	Link     models.Link `json:"link"`
 }
 
-type linkSaver interface {
+type LinkSaver interface {
 	SaveLink(link models.Link) (*models.Link, error)
 }
 
-func New(log *slog.Logger, linkSaver linkSaver) http.HandlerFunc {
+func New(log *slog.Logger, linkSaver LinkSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.link.save.New"
 
