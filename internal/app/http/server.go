@@ -6,6 +6,7 @@ import (
 	"url-shortener/internal/http/handlers/link/get"
 	"url-shortener/internal/http/handlers/link/save"
 	mw "url-shortener/internal/http/middlewares"
+	del "url-shortener/internal/http/handlers/link/delete"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -14,6 +15,7 @@ import (
 type LinkStorage interface {
 	save.LinkSaver
 	get.LinkGetter
+	del.LinkDeleter
 }
 
 // NewRouter creates router for our app. It will be used in

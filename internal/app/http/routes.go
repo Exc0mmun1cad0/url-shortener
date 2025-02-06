@@ -2,6 +2,7 @@ package httpapp
 
 import (
 	"log/slog"
+	del "url-shortener/internal/http/handlers/link/delete"
 	"url-shortener/internal/http/handlers/link/get"
 	"url-shortener/internal/http/handlers/link/save"
 
@@ -15,4 +16,6 @@ func addRoutes(
 ) {
 	router.Post("/url", save.New(log, linkStorage))
 	router.Get("/url/{alias}", get.New(log, linkStorage))
+	router.Delete("/url/{alias}", del.New(log, linkStorage))
+
 }
