@@ -10,17 +10,12 @@ import (
 	"strconv"
 	httpapp "url-shortener/internal/app/http"
 	"url-shortener/internal/config"
-	"url-shortener/internal/http/handlers/link/save"
 	"url-shortener/internal/storage/postgres"
 )
 
 type App struct {
 	HTTPServer *http.Server
 	Storage    *postgres.Storage
-}
-
-type LinkStorage interface {
-	save.LinkSaver
 }
 
 func NewApp(
