@@ -55,10 +55,10 @@ func (s *Storage) GetLink(alias string) (models.Link, error) {
 func (s *Storage) SaveLink(link models.Link) (*models.Link, error) {
 	const op = "storage.postgres.CreateLink"
 
-	var linkID uint
+	var newLink models.Link
 	err := s.db.Get(
-		&linkID,
-		`INSERT INTO links (alias, raw_url) VALUES ($1, $2) RETURNING link_id`,
+		&newLink,
+		`INSERT INTO links (alias, raw_url) VALUES ($1, $2) RETURNING *`,
 		link.Alias, link.RawURL,
 	)
 	if err != nil {
@@ -68,8 +68,7 @@ func (s *Storage) SaveLink(link models.Link) (*models.Link, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	link.ID = linkID
-	return &link, nil
+	return &newLink, nil
 }
 
 // DeleteLink deletes infromation about url shortening so it can be used anymore.
