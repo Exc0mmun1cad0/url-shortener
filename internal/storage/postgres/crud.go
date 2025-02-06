@@ -51,8 +51,8 @@ func (s *Storage) GetLink(alias string) (models.Link, error) {
 	return link, nil
 }
 
-// CreateLink adds new url shortening for further use by GetURL.
-func (s *Storage) CreateLink(link models.Link) (uint, error) {
+// SaveLink adds new url shortening for further use by GetURL.
+func (s *Storage) SaveLink(link models.Link) (uint, error) {
 	const op = "storage.postgres.CreateLink"
 
 	var linkID uint
