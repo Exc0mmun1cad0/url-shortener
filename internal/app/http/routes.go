@@ -2,16 +2,15 @@ package httpapp
 
 import (
 	"log/slog"
-	"url-shortener/internal/config"
+	"url-shortener/internal/http/handlers/link/save"
 
 	"github.com/go-chi/chi/v5"
 )
 
 func addRoutes(
-	chi *chi.Mux,
+	router *chi.Mux,
 	log *slog.Logger,
-	config *config.Config,
-
+	linkSaver save.LinkSaver,
 ) {
-	// TODO: register handlers for chi router
+	router.Post("/url", save.New(log, linkSaver))
 }
