@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -19,7 +20,11 @@ func main() {
 
 	log := logger.SetupLogger(cfg.Env)
 
-	log.Info("starting url-shortener", slog.String("env", cfg.Env))
+	log.Info(
+		"starting url-shortener",
+		slog.String("env", cfg.Env),
+		slog.String("address", fmt.Sprintf("%s:%d", cfg.HTTPServer.Host, cfg.HTTPServer.Port)),
+	)
 
 	storage, err := postgres.New(cfg.Postgres)
 	if err != nil {
