@@ -1,9 +1,11 @@
 package redirect
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
+	"url-shortener/internal/cache"
 	"url-shortener/internal/lib/logger/sl"
 	"url-shortener/internal/storage"
 
@@ -15,7 +17,12 @@ type URLGetter interface {
 	GetURL(alias string) (string, error)
 }
 
-func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
+type CacheInsertGetter interface {
+	Insert(ctx context.Context, key string, value string) error
+	Get(ctx context.Context, key string) (string, error)
+}
+
+func New(log *slog.Logger, urlGetter URLGetter, cacheIO CacheInsertGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.redirect.New"
 
@@ -26,7 +33,29 @@ func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
 
 		alias := chi.URLParam(r, "alias")
 
-		url, err := urlGetter.GetURL(alias)
+		// toAdd indicates whether i should add it (alias, url) in cache or not
+		toAdd := false
+		// first of all, we search it in cache
+		url, err := cacheIO.Get(r.Context(), alias)
+		if err != nil {
+			if errors.Is(err, cache.ErrNotFound) {
+				log.Info("url not found in cache")
+				toAdd = true
+			} else {
+				log.Error("failed to find url in cache", sl.Err(err))
+
+			}
+		}
+
+		// if url was found, we redirect to it
+		if url != "" {
+			log.Info("found url in cache", slog.String("url", url))
+
+			redirect(w, r, url)
+			return
+		}
+
+		url, err = urlGetter.GetURL(alias)
 		if errors.Is(err, storage.ErrURLNotFound) {
 			log.Info("url not found", slog.String("alias", alias))
 			w.WriteHeader(http.StatusNotFound)
@@ -40,6 +69,20 @@ func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
 
 		log.Info("found url", slog.String("url", url))
 
-		http.Redirect(w, r, url, http.StatusFound)
+		if toAdd {
+			err = cacheIO.Insert(r.Context(), alias, url)
+			if err != nil {
+				slog.Error("failed to add url to cache", sl.Err(err))
+			}
+
+			log.Info("added url to cache", slog.String("url", url))
+		}
+
+		redirect(w, r, url)
 	}
+}
+
+func redirect(w http.ResponseWriter, r *http.Request, url string) {
+	http.Redirect(w, r, url, http.StatusFound)
+
 }

@@ -1,9 +1,11 @@
 package delete
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
+	"url-shortener/internal/cache"
 	resp "url-shortener/internal/lib/api/response"
 	"url-shortener/internal/storage"
 
@@ -16,7 +18,11 @@ type LinkDeleter interface {
 	DeleteLink(alias string) error
 }
 
-func New(log *slog.Logger, linkDeleter LinkDeleter) http.HandlerFunc {
+type CacheDeleter interface {
+	Delete(ctx context.Context, key string) error
+}
+
+func New(log *slog.Logger, linkDeleter LinkDeleter, cacheDeleter CacheDeleter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.link.delete.New"
 
@@ -44,6 +50,13 @@ func New(log *slog.Logger, linkDeleter LinkDeleter) http.HandlerFunc {
 		}
 
 		log.Info("link deleted", slog.String("alias", alias))
+
+		err = cacheDeleter.Delete(r.Context(), alias)
+		if errors.Is(err, cache.ErrNotFound) {
+			slog.Info("url not found in cache", slog.String("alias", alias))
+		}
+
+		log.Info("link deleted fron cache", slog.String("alias", alias))
 
 		render.JSON(w, r, resp.OK())
 	}
