@@ -21,11 +21,17 @@ type LinkStorage interface {
 	redirect.URLGetter
 }
 
+type LinkCache interface {
+	redirect.CacheInsertGetter
+	del.CacheDeleter
+}
+
 // NewRouter creates router for our app. It will be used in
 // creating http.Server as a handler.
 func NewRouter(
 	log *slog.Logger,
 	linkStorage LinkStorage,
+	linkCache LinkCache,
 ) http.Handler {
 	router := chi.NewRouter()
 
@@ -38,7 +44,7 @@ func NewRouter(
 		middleware.URLFormat,
 	)
 
-	addRoutes(router, log, linkStorage)
+	addRoutes(router, log, linkStorage, linkCache)
 
 	return router
 }

@@ -14,10 +14,11 @@ func addRoutes(
 	router *chi.Mux,
 	log *slog.Logger,
 	linkStorage LinkStorage,
+	linkCache LinkCache,
 ) {
 	router.Post("/url", save.New(log, linkStorage))
 	router.Get("/url/{alias}", get.New(log, linkStorage))
-	router.Delete("/url/{alias}", del.New(log, linkStorage))
+	router.Delete("/url/{alias}", del.New(log, linkStorage, linkCache))
 
-	router.Get("/{alias}", redirect.New(log, linkStorage))
+	router.Get("/{alias}", redirect.New(log, linkStorage, linkCache))
 }
