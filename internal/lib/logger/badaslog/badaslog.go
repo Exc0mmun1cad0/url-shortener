@@ -73,20 +73,15 @@ func (h *Handler) Handle(ctx context.Context, r slog.Record) error {
 		level = colorize(lightRed, level)
 	}
 
-	attrs, err := h.computeAttrs(ctx, r)
+	bytes, err := h.computeAttrs(ctx, r)
 	if err != nil {
 		return err
 	}
 
-	bytes, err := json.MarshalIndent(attrs, "", "  ")
-	if err != nil {
-		return fmt.Errorf("error when unmarshalling attrs: %w", err)
-	}
-
-	fmt.Println(
+	fmt.Print(
 		colorize(magenta, r.Time.Format(timeFormat)),
 		level,
-		colorize(white, r.Message),
+		colorize(white, r.Message), " ",
 		colorize(darkGray, string(bytes)),
 	)
 
@@ -113,23 +108,36 @@ func NewHandler(opts *slog.HandlerOptions) *Handler {
 
 // computeAttrs computes attributes of inner logger and deserialize it into map
 // for further writing it as a colourful JSON.
-func (h *Handler) computeAttrs(ctx context.Context, r slog.Record) (map[string]any, error) {
+func (h *Handler) computeAttrs(ctx context.Context, r slog.Record) ([]byte, error) {
 	h.m.Lock()
 	defer func() {
 		h.b.Reset()
 		h.m.Unlock()
 	}()
 	if err := h.h.Handle(ctx, r); err != nil {
-		return nil, fmt.Errorf("error when calling inner handler's Handle: %w", err)
+		return []byte{}, fmt.Errorf("error when calling inner handler's Handle: %w", err)
 	}
 
-	var attrs map[string]any
-	err := json.Unmarshal(h.b.Bytes(), &attrs)
+	bytesRec := h.b.Bytes()
+
+	var obj map[string]json.RawMessage
+	err := json.Unmarshal([]byte(bytesRec), &obj)
 	if err != nil {
-		return nil, fmt.Errorf("error when unmarshaling inner handler's Handle result: %w", err)
+		return []byte{}, fmt.Errorf("error when unmarshallign json: %w", err)
 	}
 
-	return attrs, nil
+	// check whether json is empty. In this case we shouldn't print '{}'
+	if len(obj) == 0 {
+		return []byte("\n"), nil
+	}
+
+	var b bytes.Buffer
+	err = json.Indent(&b, bytesRec, "", "  ")
+	if err != nil {
+		return []byte{}, fmt.Errorf("error when indenting json: %w", err)
+	}
+
+	return b.Bytes(), nil
 }
 
 // supressDefaults exclude time, level and message from nested logger. It works as a middleware
