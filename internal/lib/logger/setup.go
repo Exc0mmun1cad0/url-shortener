@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"time"
-	"url-shortener/internal/lib/logger/badaslog"
+	"url-shortener/pkg/badaslog"
 )
 
 const (
