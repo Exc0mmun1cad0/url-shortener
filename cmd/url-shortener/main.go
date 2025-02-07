@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 	"url-shortener/internal/app"
+	"url-shortener/internal/cache/redis"
 	"url-shortener/internal/config"
 	"url-shortener/internal/lib/logger"
 	"url-shortener/internal/lib/logger/sl"
@@ -26,14 +27,22 @@ func main() {
 		slog.String("address", fmt.Sprintf("%s:%d", cfg.HTTPServer.Host, cfg.HTTPServer.Port)),
 	)
 
+	log.Info("initializing postgres...")
 	storage, err := postgres.New(cfg.Postgres)
 	if err != nil {
 		log.Error("failed to init storage", sl.Err(err))
 		os.Exit(1)
 	}
 
+	log.Info("initializing redis...")
+	cache, err := redis.New(context.Background(), cfg.Redis)
+	if err != nil {
+		log.Error("failed to init cache", sl.Err(err))
+		os.Exit(1)
+	}
+
 	log.Info("initializing app")
-	app := app.NewApp(cfg, log, storage)
+	app := app.NewApp(cfg, log, storage, cache)
 
 	// Graceful shutdown
 	done := make(chan os.Signal, 1)
