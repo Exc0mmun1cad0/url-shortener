@@ -26,7 +26,7 @@ func New(log *slog.Logger, linkDeleter LinkDeleter, cacheDeleter CacheDeleter) h
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.link.delete.New"
 
-		log = log.With(
+		log := log.With(
 			slog.String("op", op),
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
@@ -51,7 +51,7 @@ func New(log *slog.Logger, linkDeleter LinkDeleter, cacheDeleter CacheDeleter) h
 
 		log.Info("link deleted", slog.String("alias", alias))
 
-		err = cacheDeleter.Delete(r.Context(), alias)
+		err = cacheDeleter.Delete(context.TODO(), alias)
 		if errors.Is(err, cache.ErrNotFound) {
 			slog.Info("url not found in cache", slog.String("alias", alias))
 		}

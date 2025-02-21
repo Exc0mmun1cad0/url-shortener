@@ -27,7 +27,7 @@ func New(log *slog.Logger, linkGetter LinkGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.link.get.New"
 
-		log = log.With(
+		log := log.With(
 			slog.String("op", op),
 			slog.String("reques_id", middleware.GetReqID(r.Context())),
 		)

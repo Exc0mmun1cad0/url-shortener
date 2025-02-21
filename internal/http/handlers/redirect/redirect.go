@@ -26,7 +26,7 @@ func New(log *slog.Logger, urlGetter URLGetter, cacheIO CacheInsertGetter) http.
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.redirect.New"
 
-		log = log.With(
+		log := log.With(
 			slog.String("op", op),
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
@@ -36,7 +36,7 @@ func New(log *slog.Logger, urlGetter URLGetter, cacheIO CacheInsertGetter) http.
 		// toAdd indicates whether i should add it (alias, url) in cache or not
 		toAdd := false
 		// first of all, we search it in cache
-		url, err := cacheIO.Get(r.Context(), alias)
+		url, err := cacheIO.Get(context.TODO(), alias)
 		if err != nil {
 			if errors.Is(err, cache.ErrNotFound) {
 				log.Info("url not found in cache")
@@ -70,7 +70,7 @@ func New(log *slog.Logger, urlGetter URLGetter, cacheIO CacheInsertGetter) http.
 		log.Info("found url", slog.String("url", url))
 
 		if toAdd {
-			err = cacheIO.Insert(r.Context(), alias, url)
+			err = cacheIO.Insert(context.TODO(), alias, url)
 			if err != nil {
 				slog.Error("failed to add url to cache", sl.Err(err))
 			}
