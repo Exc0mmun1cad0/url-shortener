@@ -28,14 +28,14 @@ func main() {
 	)
 
 	log.Info("initializing postgres...")
-	storage, err := postgres.New(cfg.Postgres)
+	storage, err := postgres.New(postgres.MustLoad())
 	if err != nil {
 		log.Error("failed to init storage", sl.Err(err))
 		os.Exit(1)
 	}
 
 	log.Info("initializing redis...")
-	cache, err := redis.New(context.Background(), cfg.Redis)
+	cache, err := redis.New(context.Background(), redis.MustLoad())
 	if err != nil {
 		log.Error("failed to init cache", sl.Err(err))
 		os.Exit(1)

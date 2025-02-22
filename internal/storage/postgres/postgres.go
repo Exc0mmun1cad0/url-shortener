@@ -2,8 +2,6 @@ package postgres
 
 import (
 	"fmt"
-	"url-shortener/internal/config"
-	"url-shortener/internal/lib/postgres"
 
 	"github.com/jmoiron/sqlx"
 
@@ -15,11 +13,11 @@ type Storage struct {
 }
 
 // New creates new postgres connection.
-func New(cfg config.Postgres) (*Storage, error) {
+func New(cfg Config) (*Storage, error) {
 	const op = "storage.postgres.New"
 
 	// establish a connection
-	conn, err := sqlx.Open("postgres", postgres.FormConnStr(cfg))
+	conn, err := sqlx.Open("postgres", FormConnStr(cfg).String())
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}

@@ -6,7 +6,6 @@ import (
 	"net"
 	"strconv"
 	"url-shortener/internal/cache"
-	"url-shortener/internal/config"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -16,7 +15,7 @@ type Cache struct {
 }
 
 // New creates redis connection.
-func New(ctx context.Context, cfg config.Redis) (*Cache, error) {
+func New(ctx context.Context, cfg Config) (*Cache, error) {
 	const op = "cache.Redis.New"
 
 	addr := net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port))
