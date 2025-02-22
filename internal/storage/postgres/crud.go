@@ -11,8 +11,8 @@ import (
 )
 
 // GetURL returns the url according to its alias.
-func (s *Storage) GetURL(alias string) (string, error) {
-	const op = "storage.postgres.GetURL"
+func (s *Storage) GetURLByAlias(alias string) (string, error) {
+	const op = "storage.postgres.GetAlias"
 
 	var rawURL string
 	err := s.db.Get(
@@ -31,49 +31,49 @@ func (s *Storage) GetURL(alias string) (string, error) {
 	return rawURL, nil
 }
 
-// GetLink provides information about shortened url by its alias.
-func (s *Storage) GetLink(alias string) (models.Link, error) {
-	const op = "storage.postgres.GetLink"
+// GetURL provides information about shortened url by its alias.
+func (s *Storage) GetURL(alias string) (models.URL, error) {
+	const op = "storage.postgres.GetURL"
 
-	var link models.Link
+	var url models.URL
 	err := s.db.Get(
-		&link,
+		&url,
 		`SELECT link_id, alias, raw_url, created_at FROM links WHERE alias = $1`,
 		alias,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return models.Link{}, storage.ErrLinkNotFound
+			return models.URL{}, storage.ErrURLNotFound
 		}
-		return models.Link{}, fmt.Errorf("%s: %w", op, err)
+		return models.URL{}, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return link, nil
+	return url, nil
 }
 
-// SaveLink adds new url shortening for further use by GetURL.
-func (s *Storage) SaveLink(link models.Link) (*models.Link, error) {
-	const op = "storage.postgres.CreateLink"
+// SaveURL adds new url shortening for further use by GetURL.
+func (s *Storage) SaveURL(url models.URL) (*models.URL, error) {
+	const op = "storage.postgres.CreateURL"
 
-	var newLink models.Link
+	var newURL models.URL
 	err := s.db.Get(
-		&newLink,
+		&newURL,
 		`INSERT INTO links (alias, raw_url) VALUES ($1, $2) RETURNING *`,
-		link.Alias, link.RawURL,
+		url.Alias, url.RawURL,
 	)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-			return nil, fmt.Errorf("%s: %w", op, storage.ErrLinkExists)
+			return nil, fmt.Errorf("%s: %w", op, storage.ErrURLExists)
 		}
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return &newLink, nil
+	return &newURL, nil
 }
 
-// DeleteLink deletes infromation about url shortening so it can be used anymore.
-func (s *Storage) DeleteLink(alias string) error {
-	const op = "storage.postgres.DeleteLink"
+// DeleteURL deletes infromation about url shortening so it can be used anymore.
+func (s *Storage) DeleteURL(alias string) error {
+	const op = "storage.postgres.DeleteURL"
 
 	res, err := s.db.Exec(
 		`DELETE FROM links WHERE alias = $1`,
@@ -85,7 +85,7 @@ func (s *Storage) DeleteLink(alias string) error {
 
 	// Check whether deletion was successful
 	if num, _ := res.RowsAffected(); num == 0 {
-		return fmt.Errorf("%s: %w", op, storage.ErrLinkNotFound)
+		return fmt.Errorf("%s: %w", op, storage.ErrURLNotFound)
 	}
 
 	return nil

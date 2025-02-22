@@ -21,23 +21,23 @@ const (
 )
 
 type Request struct {
-	URL   string `json:"url" validate:"required,url"`
+	RawURL   string `json:"raw_url" validate:"required,url"`
 	Alias string `json:"alias,omitempty"`
 }
 
 type Response struct {
 	Response resp.Response
-	Link     models.Link `json:"link"`
+	URL     models.URL `json:"url"`
 }
 
-type LinkSaver interface {
-	SaveLink(link models.Link) (*models.Link, error)
+type URLSaver interface {
+	SaveURL(url models.URL) (*models.URL, error)
 }
 
-// New creates handler for creating new links.
-func New(log *slog.Logger, linkSaver LinkSaver) http.HandlerFunc {
+// New creates handler for creating new urls.
+func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "handlers.link.save.New"
+		const op = "handlers.url.save.New"
 
 		log := log.With(
 			slog.String("op", op),
@@ -70,7 +70,7 @@ func New(log *slog.Logger, linkSaver LinkSaver) http.HandlerFunc {
 
 		alias := req.Alias
 		if alias == "" {
-			alias, err = als.Generate(req.URL, aliasLength)
+			alias, err = als.Generate(req.RawURL, aliasLength)
 			if err != nil {
 				log.Error("failed to generate alias", sl.Err(err))
 
@@ -78,9 +78,9 @@ func New(log *slog.Logger, linkSaver LinkSaver) http.HandlerFunc {
 			}
 		}
 
-		link, err := linkSaver.SaveLink(models.Link{Alias: alias, RawURL: req.URL})
-		if errors.Is(err, storage.ErrLinkExists) {
-			log.Info("url already exists", slog.String("url", req.URL))
+		url, err := urlSaver.SaveURL(models.URL{Alias: alias, RawURL: req.RawURL})
+		if errors.Is(err, storage.ErrURLExists) {
+			log.Info("url already exists", slog.String("url", req.RawURL))
 
 			render.JSON(w, r, resp.Error("url already exists"))
 
@@ -94,11 +94,11 @@ func New(log *slog.Logger, linkSaver LinkSaver) http.HandlerFunc {
 			return
 		}
 
-		log.Info("link added", slog.Any("link", *link))
+		log.Info("url added", slog.Any("url", *url))
 
 		render.JSON(w, r, Response{
 			Response: resp.OK(),
-			Link:     *link,
+			URL:     *url,
 		})
 	}
 }

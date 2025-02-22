@@ -14,17 +14,17 @@ import (
 	"github.com/go-chi/render"
 )
 
-type LinkDeleter interface {
-	DeleteLink(alias string) error
+type URLDeleter interface {
+	DeleteURL(alias string) error
 }
 
 type CacheDeleter interface {
 	Delete(ctx context.Context, key string) error
 }
 
-func New(log *slog.Logger, linkDeleter LinkDeleter, cacheDeleter CacheDeleter) http.HandlerFunc {
+func New(log *slog.Logger, urlDeleter URLDeleter, cacheDeleter CacheDeleter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "handler.link.delete.New"
+		const op = "handler.url.delete.New"
 
 		log := log.With(
 			slog.String("op", op),
@@ -33,30 +33,30 @@ func New(log *slog.Logger, linkDeleter LinkDeleter, cacheDeleter CacheDeleter) h
 
 		alias := chi.URLParam(r, "alias")
 
-		err := linkDeleter.DeleteLink(alias)
-		if errors.Is(err, storage.ErrLinkNotFound) {
-			log.Info("link not found", slog.String("alias", alias))
+		err := urlDeleter.DeleteURL(alias)
+		if errors.Is(err, storage.ErrURLNotFound) {
+			log.Info("url not found", slog.String("alias", alias))
 
-			render.JSON(w, r, resp.Error("link not found"))
+			render.JSON(w, r, resp.Error("url not found"))
 
 			return
 		}
 		if err != nil {
-			log.Error("failed to delete link by its alias")
+			log.Error("failed to delete url by its alias")
 
-			render.JSON(w, r, resp.Error("failed to delete link by its alias"))
+			render.JSON(w, r, resp.Error("failed to delete url by its alias"))
 
 			return
 		}
 
-		log.Info("link deleted", slog.String("alias", alias))
+		log.Info("url deleted", slog.String("alias", alias))
 
 		err = cacheDeleter.Delete(context.TODO(), alias)
 		if errors.Is(err, cache.ErrNotFound) {
 			slog.Info("url not found in cache", slog.String("alias", alias))
 		}
 
-		log.Info("link deleted fron cache", slog.String("alias", alias))
+		log.Info("url deleted fron cache", slog.String("alias", alias))
 
 		render.JSON(w, r, resp.OK())
 	}

@@ -2,9 +2,9 @@ package httpapp
 
 import (
 	"log/slog"
-	del "url-shortener/internal/http/handlers/link/delete"
-	"url-shortener/internal/http/handlers/link/get"
-	"url-shortener/internal/http/handlers/link/save"
+	del "url-shortener/internal/http/handlers/url/delete"
+	"url-shortener/internal/http/handlers/url/get"
+	"url-shortener/internal/http/handlers/url/save"
 	"url-shortener/internal/http/handlers/redirect"
 
 	"github.com/go-chi/chi/v5"
@@ -13,12 +13,12 @@ import (
 func addRoutes(
 	router *chi.Mux,
 	log *slog.Logger,
-	linkStorage LinkStorage,
-	linkCache LinkCache,
+	urlStorage URLStorage,
+	urlCache URLCache,
 ) {
-	router.Post("/url", save.New(log, linkStorage))
-	router.Get("/url/{alias}", get.New(log, linkStorage))
-	router.Delete("/url/{alias}", del.New(log, linkStorage, linkCache))
+	router.Post("/url", save.New(log, urlStorage))
+	router.Get("/url/{alias}", get.New(log, urlStorage))
+	router.Delete("/url/{alias}", del.New(log, urlStorage, urlCache))
 
-	router.Get("/{alias}", redirect.New(log, linkStorage, linkCache))
+	router.Get("/{alias}", redirect.New(log, urlStorage, urlCache))
 }

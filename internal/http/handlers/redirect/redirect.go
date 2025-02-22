@@ -13,8 +13,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-type URLGetter interface {
-	GetURL(alias string) (string, error)
+type URLByAliasGetter interface {
+	GetURLByAlias(alias string) (string, error)
 }
 
 type CacheInsertGetter interface {
@@ -22,7 +22,7 @@ type CacheInsertGetter interface {
 	Get(ctx context.Context, key string) (string, error)
 }
 
-func New(log *slog.Logger, urlGetter URLGetter, cacheIO CacheInsertGetter) http.HandlerFunc {
+func New(log *slog.Logger, urlGetter URLByAliasGetter, cacheIO CacheInsertGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.redirect.New"
 
@@ -55,7 +55,7 @@ func New(log *slog.Logger, urlGetter URLGetter, cacheIO CacheInsertGetter) http.
 			return
 		}
 
-		url, err = urlGetter.GetURL(alias)
+		url, err = urlGetter.GetURLByAlias(alias)
 		if errors.Is(err, storage.ErrURLNotFound) {
 			log.Info("url not found", slog.String("alias", alias))
 			w.WriteHeader(http.StatusNotFound)

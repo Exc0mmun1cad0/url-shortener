@@ -3,9 +3,9 @@ package httpapp
 import (
 	"log/slog"
 	"net/http"
-	del "url-shortener/internal/http/handlers/link/delete"
-	"url-shortener/internal/http/handlers/link/get"
-	"url-shortener/internal/http/handlers/link/save"
+	del "url-shortener/internal/http/handlers/url/delete"
+	"url-shortener/internal/http/handlers/url/get"
+	"url-shortener/internal/http/handlers/url/save"
 	"url-shortener/internal/http/handlers/redirect"
 	mw "url-shortener/internal/http/middlewares"
 
@@ -13,15 +13,15 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-type LinkStorage interface {
-	save.LinkSaver
-	get.LinkGetter
-	del.LinkDeleter
+type URLStorage interface {
+	save.URLSaver
+	get.URLGetter
+	del.URLDeleter
 
-	redirect.URLGetter
+	redirect.URLByAliasGetter
 }
 
-type LinkCache interface {
+type URLCache interface {
 	redirect.CacheInsertGetter
 	del.CacheDeleter
 }
@@ -30,8 +30,8 @@ type LinkCache interface {
 // creating http.Server as a handler.
 func NewRouter(
 	log *slog.Logger,
-	linkStorage LinkStorage,
-	linkCache LinkCache,
+	urlStorage URLStorage,
+	urlCache URLCache,
 ) http.Handler {
 	router := chi.NewRouter()
 
@@ -44,7 +44,7 @@ func NewRouter(
 		middleware.URLFormat,
 	)
 
-	addRoutes(router, log, linkStorage, linkCache)
+	addRoutes(router, log, urlStorage, urlCache)
 
 	return router
 }

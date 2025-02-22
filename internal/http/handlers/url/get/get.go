@@ -15,17 +15,17 @@ import (
 
 type Response struct {
 	Response resp.Response
-	Link     models.Link `json:"link"`
+	URL     models.URL `json:"url"`
 }
 
-type LinkGetter interface {
-	GetLink(alias string) (models.Link, error)
+type URLGetter interface {
+	GetURL(alias string) (models.URL, error)
 }
 
-// New creates handler for requests connected with link information.
-func New(log *slog.Logger, linkGetter LinkGetter) http.HandlerFunc {
+// New creates handler for requests connected with url information.
+func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "handlers.link.get.New"
+		const op = "handlers.url.get.New"
 
 		log := log.With(
 			slog.String("op", op),
@@ -34,8 +34,8 @@ func New(log *slog.Logger, linkGetter LinkGetter) http.HandlerFunc {
 
 		alias := chi.URLParam(r, "alias")
 
-		link, err := linkGetter.GetLink(alias)
-		if errors.Is(err, storage.ErrLinkNotFound) {
+		url, err := urlGetter.GetURL(alias)
+		if errors.Is(err, storage.ErrURLNotFound) {
 			log.Info("alias information not found", slog.String("alias", alias))
 
 			render.JSON(w, r, resp.Error("alias information not found"))
@@ -50,11 +50,11 @@ func New(log *slog.Logger, linkGetter LinkGetter) http.HandlerFunc {
 			return
 		}
 
-		log.Info("alias information found", slog.Any("link", link))
+		log.Info("alias information found", slog.Any("url", url))
 
 		render.JSON(w, r, Response{
 			Response: resp.OK(),
-			Link:     link,
+			URL:     url,
 		})
 	}
 }
