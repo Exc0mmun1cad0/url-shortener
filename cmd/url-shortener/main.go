@@ -11,7 +11,6 @@ import (
 	"url-shortener/internal/app"
 	"url-shortener/internal/cache/redis"
 	"url-shortener/internal/config"
-	"url-shortener/internal/lib/logger"
 	"url-shortener/internal/lib/logger/sl"
 	"url-shortener/internal/storage/postgres"
 )
@@ -19,7 +18,7 @@ import (
 func main() {
 	cfg := config.MustLoad()
 
-	log := logger.SetupLogger(cfg.Env)
+	log := app.SetupLogger(cfg.Env)
 
 	log.Info(
 		"starting url-shortener",

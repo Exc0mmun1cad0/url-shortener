@@ -1,9 +1,10 @@
-package logger
+package app
 
 import (
 	"log/slog"
 	"os"
-	"url-shortener/pkg/badaslog"
+
+	"github.com/Exc0mmun1cad0/badaslog"
 )
 
 const (
