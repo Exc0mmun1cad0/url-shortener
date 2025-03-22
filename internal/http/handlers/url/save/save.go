@@ -7,7 +7,7 @@ import (
 	als "url-shortener/internal/lib/alias"
 	resp "url-shortener/internal/lib/api/response"
 	"url-shortener/internal/lib/logger/sl"
-	"url-shortener/internal/models"
+	"url-shortener/internal/model"
 	"url-shortener/internal/storage"
 
 	"github.com/go-chi/chi/v5/middleware"

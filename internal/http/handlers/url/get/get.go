@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	resp "url-shortener/internal/lib/api/response"
-	"url-shortener/internal/models"
+	"url-shortener/internal/model"
 	"url-shortener/internal/storage"
 
 	"github.com/go-chi/chi/v5"
